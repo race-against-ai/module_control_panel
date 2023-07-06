@@ -7,7 +7,9 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        ('frontend', 'frontend')
+    ],
     hiddenimports=['_cffi_backend'],
     hookspath=[],
     hooksconfig={},
@@ -27,7 +29,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='module_template',
+    name='control_panel',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

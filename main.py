@@ -1,5 +1,6 @@
-# Copyright (C) 2022 NG:ITL
-# import the main file in the backend folder
+# Copyright (C) 2023 NG:ITL
+from control_panel_backend.control_panel import ControlPanel
 
 if __name__ == "__main__":
-    print("enter you projects main function :)")
+    vehicle_control = ControlPanel()
+    vehicle_control.start()

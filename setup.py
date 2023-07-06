@@ -12,13 +12,17 @@ setup(
     name="raai_module_control_panel",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    author="Calvin Teuber",
+    author="NGITL",
     author_email="calvinteuber7@gmail.com",
-    description=("Control panel module which contains the entire control UI of RaceAgainstAI"),
+    description=("Control panel module containing the control UI of RaceAgainstAI"),
     license="GPL 3.0",
     keywords="module",
     url="https://github.com/vw-wob-it-edu-ngitl/raai_module_control_panel",
     packages=find_packages(),
     long_description=read("README.md"),
-    install_requires=["pynng~=0.7.2"],
+    install_requires=[
+        "pyside6==6.3.1",
+        "inkscape_svg_layer_extractor~=0.0.2",
+        "pynng~=0.7.2"
+                      ],
 )

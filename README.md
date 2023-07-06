@@ -1,9 +1,11 @@
-# RAAI Module Template
-A GitHub Template for creating modular RAAI Components
+# RAAI Module Control Panel
 
-write your "backend" code in the backend folder. Add a "frontend" if you want to develop frontend
+The Overlay component of the overall Control Component. It Visualizes the Driver Inputs and also gives Throttle Data
+over to the Vehicle Output Writer
 
-## Stuff to look out for
-- your Information in the setup.py
-- import and execute your main file from the backend folder into the root main.py
-- adjust the pyinstaller.spec according to your project (mainly the name)
+## Structure
+The visualized Driver Data is **received** from the driver_input_reader module over the pynng address <br>
+``ipc:///tmp/RAAI/driver_input_reader.ipc``
+
+The Throttle Data controlled by the Control Panel then gets **sent** over the address <br>
+``ipc:///tmp/RAAI/control_panel.ipc``

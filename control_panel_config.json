@@ -1,0 +1,11 @@
+{
+    "max_throttle": 15,
+    "max_brake": 50,
+    "max_clutch": 50,
+    "max_steering": 100,
+    "button_status": false,
+    "platform_status": true,
+    "pedal_status": true,
+    "head_tracking_status": false,
+    "steering_offset": -8.0
+}
