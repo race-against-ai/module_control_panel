@@ -105,13 +105,14 @@ Window {
 
     }
 
-    Image {
+    IconImage {
         id: car_image
         source: "pictures/ui_car_car.svg"
         height: parent.height / 2
         width: height / 2
         x: parent.width / 2 - width / 2
         y: parent.height * 0.4
+        color: dark_blue_text_color
 
 
     }
@@ -143,7 +144,7 @@ Window {
         height: parent.height * 0.7
 
         value: control_panel_model.brake / 2 < 0 ? 0 : control_panel_model.brake
-        actualValue: control_panel_model.actual_brake / 2 < 0 ? 0 : control_panel_model.brake
+        actualValue: control_panel_model.actual_brake / 2 < 0 ? 0 : control_panel_model.actual_brake
         maxValue: control_panel_model.max_brake
 
         onSliderMaxChanged: function(val) {

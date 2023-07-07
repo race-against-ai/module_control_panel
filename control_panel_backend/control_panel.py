@@ -123,7 +123,7 @@ class ControlPanel:
         self.engine.rootObjects()[0].buttonResetHeadTracking.connect(self.handle_head_tracker_reset_request)
 
         self.engine.rootObjects()[0].buttonButtonStatusChanged.connect(self.control_panel_model.change_button_status)
-        self.engine.rootObjects()[0].buttonPlatformStatusChanged.connect(self.control_panel_model.change_platform_status)
+        self.engine.rootObjects()[0].buttonPlatformStatusChanged.connect(self.change_platform_status)
         self.engine.rootObjects()[0].buttonPedalStatusChanged.connect(self.control_panel_model.change_pedal_status)
         self.engine.rootObjects()[0].buttonHeadTrackingChanged.connect(self.control_panel_model.change_head_tracking_status)
 
@@ -210,8 +210,13 @@ class ControlPanel:
         tilt_x = driver_payload["tilt_x"]
         tilt_y = driver_payload["tilt_y"]
         vibration = driver_payload["vibration"]
-        # print(driver_payload)
+        # print(brake)
         self.control_panel_model.set_actual_all(throttle, brake, clutch, steering)
+
+        self.max_throttle = self.control_panel_model.get_max_throttle()
+        self.max_brake = self.control_panel_model.get_max_brake()
+        self.max_clutch = self.control_panel_model.get_max_clutch()
+        self.max_steering = self.control_panel_model.get_max_steering()
 
         throttle_scaled = throttle * (self.max_throttle/100)
         brake_scaled = brake * (self.max_brake/100)
@@ -249,3 +254,11 @@ class ControlPanel:
 
     def timer_ignore(self) -> None:
         self.send_to_timer("ignore", "timer_signal")
+
+    def change_platform_status(self) -> None:
+        self.control_panel_model.set_platform_status(not self.control_panel_model.get_platform_status())
+        self.send_platform_signal()
+
+    def send_platform_signal(self) -> None:
+        payload = {"platform_status": self.control_panel_model.get_platform_status()}
+        send_data(self.__pynng_data_publisher, payload, "platform")
