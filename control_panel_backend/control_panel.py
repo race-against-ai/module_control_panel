@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import pynng
+import time
 
 from pathlib import Path
 
@@ -12,6 +13,8 @@ from PySide6.QtCore import QTimer
 from PySide6.QtCore import QSocketNotifier
 
 from control_panel_backend.control_panel_model import ControlPanelModel
+from control_panel_backend.timer_model import Timer
+from enum import IntEnum
 
 CONTROL_PANEL_PYNNG_ADDRESS = "ipc:///tmp/RAAI/control_panel.ipc"
 CONTROL_COMPONENT_PYNNG_ADDRESS = "ipc:///tmp/RAAI/vehicle_output_writer.ipc"
@@ -97,11 +100,26 @@ def resource_path() -> Path:
     return Path(base_path)
 
 
+class TimerStates(IntEnum):
+    RESET = 0
+    RUNNING = 1
+    PAUSED = 2
+    STOPPED = 3
+
+
 class ControlPanel:
 
     def __init__(self, config_file_path='./control_panel_config.json') -> None:
 
         self.config = read_config(config_file_path)
+
+        self.start_timestamp_ns = time.time_ns()
+        self.diff = 0
+        self.t_model = Timer(0, 0, 0)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.timer_callback)
+
+        self.timer_state = 0
 
         self.app = QGuiApplication(sys.argv)
         self.engine = QQmlApplicationEngine()
@@ -110,6 +128,8 @@ class ControlPanel:
         self.engine.rootContext().setContextProperty("control_panel_model", self.control_panel_model)
         # and load the QML panel
         self.engine.load(resource_path() / "frontend/qml/main.qml")
+
+        self.engine.rootContext().setContextProperty("t_model", self.t_model)
 
         # connect to the signals from the QML file
         self.engine.rootObjects()[0].sliderMaxThrottleChanged.connect(self.control_panel_model.set_max_throttle)
@@ -167,6 +187,11 @@ class ControlPanel:
         self.__driver_input_receiver.dial(PLATFORM_CONTROLLER_PYNNG_ADDRESS, block=False)
         self._notifier = QSocketNotifier(self.__driver_input_receiver.recv_fd, QSocketNotifier.Read)
         self._notifier.activated.connect(self.handle_driver_input)
+
+    def timer_callback(self) -> None:
+        current_timestamp_ns = time.time_ns()
+        self.diff = current_timestamp_ns - self.start_timestamp_ns
+        self.t_model.set_timestamp(self.diff)
 
     def handle_head_tracker_reset_request(self) -> None:
         pass
@@ -238,16 +263,33 @@ class ControlPanel:
         send_data(self.__pynng_data_publisher, payload, topic)
 
     def timer_start(self) -> None:
-        self.send_to_timer("start", "timer_signal")
+        if self.timer_state == TimerStates.STOPPED:
+            self.diff = 0
+            self.t_model.set_timestamp(0)
+
+        self.start_timestamp_ns = time.time_ns() - self.diff
+        self.timer.start()
+        self.timer_state = TimerStates.RUNNING
 
     def timer_pause(self) -> None:
-        self.send_to_timer("pause", "timer_signal")
+        if self.timer_state == TimerStates.PAUSED:
+            self.start()
+        else:
+            self.timer.stop()
+            self.timer_state = TimerStates.PAUSED
 
     def timer_stop(self) -> None:
-        self.send_to_timer("stop", "timer_signal")
+        if self.timer_state == TimerStates.PAUSED:
+            self.start()
+        else:
+            self.timer.stop()
+            self.timer_state = TimerStates.PAUSED
 
     def timer_reset(self) -> None:
-        self.send_to_timer("reset", "timer_signal")
+        self.timer.stop()
+        self.diff = 0
+        self.t_model.set_timestamp(0)
+        self.timer_state = TimerStates.RESET
 
     def timer_reset_full(self) -> None:
         self.send_to_timer("reset full", "timer_signal")
