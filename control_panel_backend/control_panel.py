@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import pynng
+import time
 
 from pathlib import Path
 
@@ -12,10 +13,13 @@ from PySide6.QtCore import QTimer
 from PySide6.QtCore import QSocketNotifier
 
 from control_panel_backend.control_panel_model import ControlPanelModel
+from control_panel_backend.timer_model import Timer
+from enum import IntEnum
 
 CONTROL_PANEL_PYNNG_ADDRESS = "ipc:///tmp/RAAI/control_panel.ipc"
 CONTROL_COMPONENT_PYNNG_ADDRESS = "ipc:///tmp/RAAI/vehicle_output_writer.ipc"
 PLATFORM_CONTROLLER_PYNNG_ADDRESS = "ipc:///tmp/RAAI/driver_input_reader.ipc"
+SESSION_STATUS_RECEIVER_ADDRESS = "ipc:///tmp/RAAI/session_status.ipc"
 
 
 def send_data(pub: pynng.Pub0, payload: dict, topic: str = " ", p_print: bool = True) -> None:
@@ -116,17 +120,33 @@ def resource_path() -> Path:
     return Path(base_path)
 
 
+class TimerStates(IntEnum):
+    RESET = 0
+    RUNNING = 1
+    PAUSED = 2
+    STOPPED = 3
+
+
 class ControlPanel:
 
     def __init__(self, config_file_path='./control_panel_config.json') -> None:
 
         self.config = read_config(config_file_path)
 
+        self.start_timestamp_ns = time.time_ns()
+        self.diff = 0
+        self.t_model = Timer(0, 0, 0)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.timer_callback)
+
+        self.timer_state = 0
+
         self.app = QGuiApplication(sys.argv)
         self.engine = QQmlApplicationEngine()
 
         self.control_panel_model = ControlPanelModel()
         self.engine.rootContext().setContextProperty("control_panel_model", self.control_panel_model)
+        self.engine.rootContext().setContextProperty("t_model", self.t_model)
         # and load the QML panel
         self.engine.load(resource_path() / "frontend/qml/main.qml")
 
@@ -191,6 +211,18 @@ class ControlPanel:
         self._notifier = QSocketNotifier(self.__driver_input_receiver.recv_fd, QSocketNotifier.Read)
         self._notifier.activated.connect(self.handle_driver_input)
 
+        self.__session_receiver = pynng.Sub0()
+        self.__session_receiver.subscribe("")
+        self.__session_receiver.dial(SESSION_STATUS_RECEIVER_ADDRESS, block=False)
+
+        self.session_receiver_socket_notifier = QSocketNotifier(self.__session_receiver.recv_fd, QSocketNotifier.Read)
+        self.session_receiver_socket_notifier.activated.connect(self.handle_session_status)
+
+    def timer_callback(self) -> None:
+        current_timestamp_ns = time.time_ns()
+        self.diff = current_timestamp_ns - self.start_timestamp_ns
+        self.t_model.set_timestamp(self.diff)
+
     def handle_head_tracker_reset_request(self) -> None:
         pass
 
@@ -249,6 +281,18 @@ class ControlPanel:
 
         self.control_panel_model.set_all(throttle_scaled, brake_scaled, clutch_scaled, steering_scaled)
 
+    def handle_session_status(self):
+        session_payload = receive_data(self.__session_receiver)
+        print(session_payload)
+        if session_payload["Session_status"] == "Start":
+            self.control_panel_model.set_pedal_status(True)
+            self.timer_reset()
+            self.timer_start()
+        else:
+            self.control_panel_model.set_pedal_status(False)
+            self.timer_stop()
+        print(self.control_panel_model.pedal_status)
+
     def start(self):
         self.app.exec()
 
@@ -262,16 +306,33 @@ class ControlPanel:
         send_data(self.__pynng_data_publisher, payload, topic)
 
     def timer_start(self) -> None:
-        self.send_to_timer("start", "timer_signal")
+        if self.timer_state == TimerStates.STOPPED:
+            self.diff = 0
+            self.t_model.set_timestamp(0)
+
+        self.start_timestamp_ns = time.time_ns() - self.diff
+        self.timer.start()
+        self.timer_state = TimerStates.RUNNING
 
     def timer_pause(self) -> None:
-        self.send_to_timer("pause", "timer_signal")
+        if self.timer_state == TimerStates.PAUSED:
+            self.start()
+        else:
+            self.timer.stop()
+            self.timer_state = TimerStates.PAUSED
 
     def timer_stop(self) -> None:
-        self.send_to_timer("stop", "timer_signal")
+        if self.timer_state == TimerStates.PAUSED:
+            self.start()
+        else:
+            self.timer.stop()
+            self.timer_state = TimerStates.PAUSED
 
     def timer_reset(self) -> None:
-        self.send_to_timer("reset", "timer_signal")
+        self.timer.stop()
+        self.diff = 0
+        self.t_model.set_timestamp(0)
+        self.timer_state = TimerStates.RESET
 
     def timer_reset_full(self) -> None:
         self.send_to_timer("reset full", "timer_signal")

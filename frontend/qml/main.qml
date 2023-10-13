@@ -209,4 +209,26 @@ Window {
         }
     }
 
+    Rectangle {
+            id: timerBackground
+            x: window.width / 2 - width / 2
+            y: window.height * 0.9
+            radius: 10
+            color: window.light_grey
+            width: timer.width * 1.2
+            height: timer.height * 1.05
+            border.color: "white"
+            border.width: 5
+
+            Text {
+                id: timer
+                text: String(t_model.minutes).padStart(2, '0') + ":" + String(t_model.seconds).padStart(2, '0') + "." + String(t_model.millis).padStart(3, '0')
+                anchors.verticalCenter: timerBackground.verticalCenter
+                anchors.horizontalCenter: timerBackground.horizontalCenter
+                color: window.dark_blue_text_color
+                font.pointSize: window.height / 30
+                font.bold: true
+            }
+        }
+
 }
