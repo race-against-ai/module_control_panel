@@ -84,57 +84,65 @@ Item {
     }
 
     Rectangle {
-        id: content
-        color: "#f0f0f0"
-        anchors.centerIn: parent
-        width: parent.width * 0.9
-        height: parent.height * 0.65
-        radius: 10
+    id: content
+    color: "#f0f0f0"
+    anchors.centerIn: parent
+    width: parent.width * 0.9
+    height: parent.height * 0.65
+    radius: 10
 
-        Column {
+        ScrollView {
+            id: scrollView
             anchors.fill: parent
-            spacing: 5
+            clip: true
 
-            Repeater {
-                model: database_model.drivers
+            Column {
+                width: scrollView.width
+                spacing: 5
 
-                delegate: Rectangle {
-                    width: content.width
-                    height: content.height / 15
-                    opacity: mouseHandler.containsMouse ? 1 : 0.5
-                    color: index % 2 === 0 ? "#ffffff" : "#e0e0e0"
-                    radius: 5
+                Repeater {
+                    model: database_model.drivers
 
-                    Row {
-                        anchors.fill: parent
-                        spacing: 10
+                    delegate: Rectangle {
+                        width: content.width
+                        height: content.height / 15
+                        opacity: mouseHandler.containsMouse ? 1 : 0.5
+                        color: index % 2 === 0 ? "#ffffff" : "#e0e0e0"
+                        radius: 5
 
-                        MouseArea {
-                            id: mouseHandler
+                        Row {
                             anchors.fill: parent
-                            hoverEnabled: true
-                            onClicked: database_model.send_data(modelData.name)
-                        }
+                            spacing: 10
 
-                        Text {
-                            color: "black"
-                            text: modelData.name
-                            anchors.verticalCenter: parent.verticalCenter
-                            font.pixelSize: 16
-                        }
+                            MouseArea {
+                                id: mouseHandler
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                onClicked: database_model.send_data(modelData.name)
+                            }
 
-                        Text {
-                            color: "black"
-                            text: modelData.created
-                            
-                        }
+                            Text {
+                                color: "black"
+                                text: modelData.name
+                                anchors.verticalCenter: parent.verticalCenter
+                                font.pixelSize: 16
+                            }
 
-                        Text {
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            color: "black"
-                            text: modelData.id
-                            font.pixelSize: 16
+                            Text {
+                                color: "black"
+                                text: modelData.created
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.verticalCenter: parent.verticalCenter
+                                font.pixelSize: 16
+                            }
+
+                            Text {
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                color: "black"
+                                text: modelData.id
+                                font.pixelSize: 16
+                            }
                         }
                     }
                 }
