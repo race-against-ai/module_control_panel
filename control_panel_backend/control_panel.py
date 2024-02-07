@@ -14,6 +14,7 @@ from PySide6.QtCore import QSocketNotifier
 
 from control_panel_backend.control_panel_model import ControlPanelModel
 from control_panel_backend.timer_model import Timer
+from control_panel_backend.database_interface_model import DriverDataPublisher
 from enum import IntEnum
 
 CONTROL_PANEL_PYNNG_ADDRESS = "ipc:///tmp/RAAI/control_panel.ipc"
@@ -119,6 +120,9 @@ class ControlPanel:
         self.timer = QTimer()
         self.timer.timeout.connect(self.timer_callback)
 
+        self.database_model = DriverDataPublisher(self.config["pynng"]["publishers"]["name_publisher"]["address"],
+                                    self.config["pynng"]["requesters"]["database_request"]["address"])
+
         self.timer_state = 0
 
         self.app = QGuiApplication(sys.argv)
@@ -130,6 +134,7 @@ class ControlPanel:
         self.engine.load(resource_path() / "frontend/qml/main.qml")
 
         self.engine.rootContext().setContextProperty("t_model", self.t_model)
+        self.engine.rootContext().setContextProperty("database_model", self.database_model)
 
         # connect to the signals from the QML file
         self.engine.rootObjects()[0].sliderMaxThrottleChanged.connect(self.control_panel_model.set_max_throttle)
@@ -197,8 +202,6 @@ class ControlPanel:
         pass
 
     def send_driver_throttle_data(self) -> None:
-        # self.control_panel_model.set_actual_all(0, 0, 0, steering_percent)
-        # self.control_panel_model.set_all(0, 0, 0, steering_percent_scaled)
         self.max_throttle = self.control_panel_model.get_max_throttle()
         self.max_brake = self.control_panel_model.get_max_brake()
         self.max_clutch = self.control_panel_model.get_max_clutch()
@@ -235,7 +238,7 @@ class ControlPanel:
         tilt_x = driver_payload["tilt_x"]
         tilt_y = driver_payload["tilt_y"]
         vibration = driver_payload["vibration"]
-        # print(brake)
+
         self.control_panel_model.set_actual_all(throttle, brake, clutch, steering)
 
         self.max_throttle = self.control_panel_model.get_max_throttle()
@@ -258,7 +261,14 @@ class ControlPanel:
     # timer is listening to specified port
     # used for links in buttons
     def send_to_timer(self, string: str, topic: str) -> None:
-        # self.__pub.send(string.encode())
+        """
+        Sends a message to the timer.
+
+        Args:
+        string (str): The message to send.
+        topic (str): The topic to send the message on.
+        """
+
         payload = {"signal": string}
         send_data(self.__pynng_data_publisher, payload, topic)
 
