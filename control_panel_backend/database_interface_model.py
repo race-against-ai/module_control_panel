@@ -3,6 +3,7 @@ import pynng
 from time import sleep
 import json
 
+
 class DriverDataPublisher(QObject):
     driversChanged = Signal()
     statusChanged = Signal()
@@ -39,10 +40,9 @@ class DriverDataPublisher(QObject):
         Returns:
         list: The sorted list of drivers.
         """
-        drivers.sort(key=lambda x: x['created'], reverse=True)
+        drivers.sort(key=lambda x: x["created"], reverse=True)
         return drivers
-    
-    
+
     @Slot(str)
     def send_data(self, driver_name):
         """
@@ -51,21 +51,21 @@ class DriverDataPublisher(QObject):
         Args:
         driver_name (str): The name of the driver to send.
         """
-        
+
         data = "current_driver: " + driver_name
         self.pub_socket.send(data.encode("utf-8"))
-        self.status = (f"Sent data: {driver_name}")
+        self.status = f"Sent data: {driver_name}"
 
     @Slot()
     def refresh_driver(self):
-        """ Sends a request to refresh the driver data and handles the response. """
+        """Sends a request to refresh the driver data and handles the response."""
 
-        data = 'get_drivers'
+        data = "get_drivers"
         self.req_socket.send(data.encode("utf-8"))
         response = self.req_socket.recv().decode("utf-8")
 
         if response == "No Driver found":
-            self.status =  "No driver found"
+            self.status = "No driver found"
         elif response == "Error":
             self.status = "Error while refreshing drivers"
         else:
@@ -92,7 +92,7 @@ class DriverDataPublisher(QObject):
             self.status = "Found driver " + name
         else:
             self.status = "No driver found"
-        
+
     @Slot(str)
     def create_driver(self, name: str):
         """
@@ -102,8 +102,7 @@ class DriverDataPublisher(QObject):
         name (str): The name of the driver to create.
         """
 
-        print(f"Called create_driver with {name}")
-        data = f'post_driver: {name}'
+        data = f"post_driver: {name}"
         try:
             self.req_socket.send(data.encode("utf-8"))
             response = self.req_socket.recv().decode("utf-8")
@@ -123,11 +122,11 @@ class DriverDataPublisher(QObject):
     @Property(list, notify=driversChanged)
     def drivers(self):
         return self.__drivers
-    
+
     @Property(str, notify=statusChanged)
     def status(self):
         return self.__status
-    
+
     @Property(list)
     def saved_drivers(self):
         return self.__saved_drivers

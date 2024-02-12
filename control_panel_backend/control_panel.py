@@ -61,13 +61,13 @@ def remove_pynng_topic(data, sign: str = " ") -> str:
     """
     decoded_data: str = data.decode()
     i = decoded_data.find(sign)
-    decoded_data = decoded_data[i + 1:]
+    decoded_data = decoded_data[i + 1 :]
     return decoded_data
 
 
 def read_config(config_file_path: str) -> dict:
     if os.path.isfile(config_file_path):
-        with open(config_file_path, 'r') as file:
+        with open(config_file_path, "r") as file:
             return json.load(file)
     else:
         return create_config(config_file_path)
@@ -86,11 +86,11 @@ def create_config(config_file_path: str) -> dict:
         "platform_status": True,
         "pedal_status": True,
         "head_tracking_status": False,
-        "steering_offset": -8.0
+        "steering_offset": -8.0,
     }
 
     file = json.dumps(template, indent=4)
-    with open(config_file_path, 'w') as f:
+    with open(config_file_path, "w") as f:
         f.write(file)
 
     return template
@@ -109,9 +109,7 @@ class TimerStates(IntEnum):
 
 
 class ControlPanel:
-
-    def __init__(self, config_file_path='./control_panel_config.json') -> None:
-
+    def __init__(self, config_file_path="./control_panel_config.json") -> None:
         self.config = read_config(config_file_path)
 
         self.start_timestamp_ns = time.time_ns()
@@ -120,8 +118,10 @@ class ControlPanel:
         self.timer = QTimer()
         self.timer.timeout.connect(self.timer_callback)
 
-        self.database_model = DriverDataPublisher(self.config["pynng"]["publishers"]["name_publisher"]["address"],
-                                    self.config["pynng"]["requesters"]["database_request"]["address"])
+        self.database_model = DriverDataPublisher(
+            self.config["pynng"]["publishers"]["name_publisher"]["address"],
+            self.config["pynng"]["requesters"]["database_request"]["address"],
+        )
 
         self.timer_state = 0
 
@@ -150,7 +150,9 @@ class ControlPanel:
         self.engine.rootObjects()[0].buttonButtonStatusChanged.connect(self.control_panel_model.change_button_status)
         self.engine.rootObjects()[0].buttonPlatformStatusChanged.connect(self.change_platform_status)
         self.engine.rootObjects()[0].buttonPedalStatusChanged.connect(self.control_panel_model.change_pedal_status)
-        self.engine.rootObjects()[0].buttonHeadTrackingChanged.connect(self.control_panel_model.change_head_tracking_status)
+        self.engine.rootObjects()[0].buttonHeadTrackingChanged.connect(
+            self.control_panel_model.change_head_tracking_status
+        )
 
         self.engine.rootObjects()[0].timerStart.connect(self.timer_start)
         self.engine.rootObjects()[0].timerPause.connect(self.timer_pause)
@@ -214,7 +216,7 @@ class ControlPanel:
             "brake": 0,
             "clutch": 0,
             "steering": self.max_steering,
-            "steering_offset": self.steering_offset
+            "steering_offset": self.steering_offset,
         }
 
         if self.control_panel_model.get_pedal_status():
@@ -223,7 +225,7 @@ class ControlPanel:
                 "max_brake": self.max_brake,
                 "max_clutch": self.max_clutch,
                 "max_steering": self.max_steering,
-                "steering_offset": self.steering_offset
+                "steering_offset": self.steering_offset,
             }
 
         send_data(self.__pynng_data_publisher, throttle_payload, "config", p_print=False)
@@ -246,10 +248,10 @@ class ControlPanel:
         self.max_clutch = self.control_panel_model.get_max_clutch()
         self.max_steering = self.control_panel_model.get_max_steering()
 
-        throttle_scaled = throttle * (self.max_throttle/100)
-        brake_scaled = brake * (self.max_brake/100)
-        clutch_scaled = clutch * (self.max_clutch/100)
-        steering_scaled = steering * (self.max_steering/100)
+        throttle_scaled = throttle * (self.max_throttle / 100)
+        brake_scaled = brake * (self.max_brake / 100)
+        clutch_scaled = clutch * (self.max_clutch / 100)
+        steering_scaled = steering * (self.max_steering / 100)
 
         self.control_panel_model.set_all(throttle_scaled, brake_scaled, clutch_scaled, steering_scaled)
 

@@ -3,7 +3,6 @@ from PySide6.QtCore import QObject, Signal, Property
 
 
 class ControlPanelModel(QObject):
-
     def __init__(self) -> None:
         QObject.__init__(self)
         # standard, used for sending
@@ -369,7 +368,11 @@ class ControlPanelModel(QObject):
     button_status = Property(bool, get_button_status, set_button_status, notify=button_status_changed)
     platform_status = Property(bool, get_platform_status, set_platform_status, notify=platform_status_changed)
     pedal_status = Property(bool, get_pedal_status, set_pedal_status, notify=pedal_status_changed)
-    head_tracking_status = Property(bool, get_head_tracking_status, set_head_tracking_status, notify=head_tracking_status_changed)
+    head_tracking_status = Property(
+        bool, get_head_tracking_status, set_head_tracking_status, notify=head_tracking_status_changed
+    )
 
     # ---------- head tracking ----------
-    head_tracking_yaw_angle = Property(float, get_head_tracking_yaw_angle, set_head_tracking_yaw_angle, notify=head_tracking_yaw_angle_changed)
+    head_tracking_yaw_angle = Property(
+        float, get_head_tracking_yaw_angle, set_head_tracking_yaw_angle, notify=head_tracking_yaw_angle_changed
+    )

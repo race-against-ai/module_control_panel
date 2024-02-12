@@ -95,6 +95,7 @@ Item {
             id: scrollView
             anchors.fill: parent
             clip: true
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
             Column {
                 width: scrollView.width

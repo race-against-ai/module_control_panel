@@ -77,23 +77,29 @@ Window {
     }
 
     VariousButton {
-        id: viewChangingButton
-        height: window.height * 0.08
-        width: window.width * 0.12
-        text: "Change View"
-        anchors.bottom: parent.bottom
+        id: hamburgerButton
+        text: "☰"
+        anchors.top: parent.top
         anchors.left: parent.left
-        onClicked: {
-            if (stackView.currentItem === mainView) {
-                mainView.navigateNext() // Assuming that MainView has a navigateNext signal
-            } else if (stackView.currentItem === nameView) {
-                nameView.navigateBack()
+        height: parent.height * 0.05
+        width: parent.width * 0.05
+
+        onClicked: menu.open()
+
+        Menu {
+            id: menu
+            x: hamburgerButton.x
+            y: hamburgerButton.height
+
+            MenuItem {
+                text: "Main View"
+                onTriggered: nameView.navigateBack()
+            }
+
+            MenuItem {
+                text: "Database"
+                onTriggered: mainView.navigateNext()
             }
         }
-    }
-
-    function onNameChanged(name) {
-        console.log(name)
-        name_model.name_changed(name)
     }
 }
