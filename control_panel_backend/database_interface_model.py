@@ -3,6 +3,7 @@ import pynng
 from time import sleep
 import json
 
+
 class DriverDataPublisher(QObject):
     driversChanged = Signal()
     statusChanged = Signal()
@@ -38,9 +39,9 @@ class DriverDataPublisher(QObject):
         Returns:
         list: The sorted list of drivers.
         """
-        drivers.sort(key=lambda x: x['created'], reverse=True)
+        drivers.sort(key=lambda x: x["created"], reverse=True)
         return drivers
-    
+
     @Slot(str)
     def send_data(self, driver_name):
         """
@@ -55,8 +56,8 @@ class DriverDataPublisher(QObject):
 
     @Slot()
     def refresh_driver(self):
-        """ Sends a request to refresh the driver data and handles the response. """
-        data = 'get_drivers'
+        """Sends a request to refresh the driver data and handles the response."""
+        data = "get_drivers"
         self.req_socket.send(data.encode("utf-8"))
         response = self.req_socket.recv().decode("utf-8")
 
@@ -86,7 +87,7 @@ class DriverDataPublisher(QObject):
             self.set_status("Found driver " + name)
         else:
             self.set_status("No driver found")
-        
+
     @Slot(str)
     def create_driver(self, name: str):
         """
@@ -95,7 +96,7 @@ class DriverDataPublisher(QObject):
         Args:
         name (str): The name of the driver to create.
         """
-        data = f'post_driver: {name}'
+        data = f"post_driver: {name}"
         try:
             self.req_socket.send(data.encode("utf-8"))
             response = self.req_socket.recv().decode("utf-8")
@@ -113,11 +114,11 @@ class DriverDataPublisher(QObject):
         except:
             self.set_status("Driver creation failed")
 
-    @Property(list, notify=driversChanged) # type: ignore
+    @Property(list, notify=driversChanged)  # type: ignore
     def drivers(self):
         return self.__drivers
-    
-    @Property(str, notify=statusChanged) # type: ignore
+
+    @Property(str, notify=statusChanged)  # type: ignore
     def status(self):
         return self.__status
 

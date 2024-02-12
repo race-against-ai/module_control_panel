@@ -317,8 +317,10 @@ class ControlPanelModel(QObject):
     platform_status = Property(bool, get_platform_status, set_platform_status, notify=platform_status_changed)  # type: ignore
     pedal_status = Property(bool, get_pedal_status, set_pedal_status, notify=pedal_status_changed)  # type: ignore
     head_tracking_status = Property(
-        bool, get_head_tracking_status, set_head_tracking_status, notify=head_tracking_status_changed)  # type: ignore
+        bool, get_head_tracking_status, set_head_tracking_status, notify=head_tracking_status_changed  # type: ignore
+    )
 
     # ---------- head tracking ----------
     head_tracking_yaw_angle = Property(
-        float, get_head_tracking_yaw_angle, set_head_tracking_yaw_angle, notify=head_tracking_yaw_angle_changed)  # type: ignore
+        float, get_head_tracking_yaw_angle, set_head_tracking_yaw_angle, notify=head_tracking_yaw_angle_changed  # type: ignore
+    )
