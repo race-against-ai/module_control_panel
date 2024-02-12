@@ -39,7 +39,7 @@ def send_data(pub: pynng.Pub0, payload: dict, topic: str = " ", p_print: bool = 
     pub.send(msg.encode())
 
 
-def receive_data(sub: pynng.Sub0) -> dict:
+def receive_data(sub: pynng.Sub0):
     """
     receives data via pynng and returns a variable that stores the content
 
@@ -116,7 +116,7 @@ class ControlPanel:
         self.diff = 0
         self.t_model = Timer(0, 0, 0)
         self.timer = QTimer()
-        self.timer.timeout.connect(self.timer_callback)
+        self.timer.timeout.connect(self.timer_callback) # type: ignore
 
         self.database_model = DriverDataPublisher(
             self.config["pynng"]["publishers"]["name_publisher"]["address"],
@@ -137,32 +137,31 @@ class ControlPanel:
         self.engine.rootContext().setContextProperty("database_model", self.database_model)
 
         # connect to the signals from the QML file
-        self.engine.rootObjects()[0].sliderMaxThrottleChanged.connect(self.control_panel_model.set_max_throttle)
-        self.engine.rootObjects()[0].sliderMaxBrakeChanged.connect(self.control_panel_model.set_max_brake)
-        self.engine.rootObjects()[0].sliderMaxClutchChanged.connect(self.control_panel_model.set_max_clutch)
-        self.engine.rootObjects()[0].sliderMaxSteeringChanged.connect(self.control_panel_model.set_max_steering)
-        self.engine.rootObjects()[0].sliderAllMaxSpeedChanged.connect(self.control_panel_model.set_all_speed_max)
+        self.engine.rootObjects()[0].sliderMaxThrottleChanged.connect(self.control_panel_model.set_max_throttle) # type: ignore
+        self.engine.rootObjects()[0].sliderMaxBrakeChanged.connect(self.control_panel_model.set_max_brake) # type: ignore
+        self.engine.rootObjects()[0].sliderMaxClutchChanged.connect(self.control_panel_model.set_max_clutch) # type: ignore
+        self.engine.rootObjects()[0].sliderMaxSteeringChanged.connect(self.control_panel_model.set_max_steering) # type: ignore
+        self.engine.rootObjects()[0].sliderAllMaxSpeedChanged.connect(self.control_panel_model.set_all_speed_max) # type: ignore
 
-        self.engine.rootObjects()[0].sliderSteeringOffsetChanged.connect(self.control_panel_model.set_steering_offset)
+        self.engine.rootObjects()[0].sliderSteeringOffsetChanged.connect(self.control_panel_model.set_steering_offset) # type: ignore
 
-        self.engine.rootObjects()[0].buttonResetHeadTracking.connect(self.handle_head_tracker_reset_request)
+        self.engine.rootObjects()[0].buttonResetHeadTracking.connect(self.handle_head_tracker_reset_request) # type: ignore
 
-        self.engine.rootObjects()[0].buttonButtonStatusChanged.connect(self.control_panel_model.change_button_status)
-        self.engine.rootObjects()[0].buttonPlatformStatusChanged.connect(self.change_platform_status)
-        self.engine.rootObjects()[0].buttonPedalStatusChanged.connect(self.control_panel_model.change_pedal_status)
-        self.engine.rootObjects()[0].buttonHeadTrackingChanged.connect(
-            self.control_panel_model.change_head_tracking_status
-        )
+        self.engine.rootObjects()[0].buttonButtonStatusChanged.connect(self.control_panel_model.change_button_status) # type: ignore
+        self.engine.rootObjects()[0].buttonPlatformStatusChanged.connect(self.change_platform_status) # type: ignore
+        self.engine.rootObjects()[0].buttonPedalStatusChanged.connect(self.control_panel_model.change_pedal_status) # type: ignore
+        self.engine.rootObjects()[0].buttonHeadTrackingChanged.connect( # type: ignore
+            self.control_panel_model.change_head_tracking_status)  
 
-        self.engine.rootObjects()[0].timerStart.connect(self.timer_start)
-        self.engine.rootObjects()[0].timerPause.connect(self.timer_pause)
-        self.engine.rootObjects()[0].timerStop.connect(self.timer_stop)
-        self.engine.rootObjects()[0].timerReset.connect(self.timer_reset)
-        self.engine.rootObjects()[0].timerResetFull.connect(self.timer_reset_full)
-        self.engine.rootObjects()[0].timerIgnore.connect(self.timer_ignore)
+        self.engine.rootObjects()[0].timerStart.connect(self.timer_start) # type: ignore
+        self.engine.rootObjects()[0].timerPause.connect(self.timer_pause) # type: ignore
+        self.engine.rootObjects()[0].timerStop.connect(self.timer_stop) # type: ignore
+        self.engine.rootObjects()[0].timerReset.connect(self.timer_reset) # type: ignore
+        self.engine.rootObjects()[0].timerResetFull.connect(self.timer_reset_full) # type: ignore
+        self.engine.rootObjects()[0].timerIgnore.connect(self.timer_ignore) # type: ignore
 
         self.driver_input_timer = QTimer()
-        self.driver_input_timer.timeout.connect(self.send_driver_throttle_data)
+        self.driver_input_timer.timeout.connect(self.send_driver_throttle_data) # type: ignore
         self.driver_input_timer.start(1)
 
         self.control_panel_model.set_steering_offset(self.config["steering_offset"])
@@ -193,7 +192,7 @@ class ControlPanel:
         self.__driver_input_receiver.subscribe("driver_input")
         self.__driver_input_receiver.dial(PLATFORM_CONTROLLER_PYNNG_ADDRESS, block=False)
         self._notifier = QSocketNotifier(self.__driver_input_receiver.recv_fd, QSocketNotifier.Read)
-        self._notifier.activated.connect(self.handle_driver_input)
+        self._notifier.activated.connect(self.handle_driver_input) # type: ignore
 
     def timer_callback(self) -> None:
         current_timestamp_ns = time.time_ns()

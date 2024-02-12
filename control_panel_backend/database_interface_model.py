@@ -3,14 +3,12 @@ import pynng
 from time import sleep
 import json
 
-
 class DriverDataPublisher(QObject):
     driversChanged = Signal()
     statusChanged = Signal()
 
     def __init__(self, pub_address, req_address):
-        QObject.__init__(self)
-        self.__saved_drivers = []
+        super().__init__()
         self.__drivers = [
             {
                 "id": "4823662a-29c5-47d7-bdba-68baa2825990",
@@ -40,9 +38,9 @@ class DriverDataPublisher(QObject):
         Returns:
         list: The sorted list of drivers.
         """
-        drivers.sort(key=lambda x: x["created"], reverse=True)
+        drivers.sort(key=lambda x: x['created'], reverse=True)
         return drivers
-
+    
     @Slot(str)
     def send_data(self, driver_name):
         """
@@ -51,30 +49,27 @@ class DriverDataPublisher(QObject):
         Args:
         driver_name (str): The name of the driver to send.
         """
-
         data = "current_driver: " + driver_name
         self.pub_socket.send(data.encode("utf-8"))
-        self.status = f"Sent data: {driver_name}"
+        self.set_status(f"Sent data: {driver_name}")
 
     @Slot()
     def refresh_driver(self):
-        """Sends a request to refresh the driver data and handles the response."""
-
-        data = "get_drivers"
+        """ Sends a request to refresh the driver data and handles the response. """
+        data = 'get_drivers'
         self.req_socket.send(data.encode("utf-8"))
         response = self.req_socket.recv().decode("utf-8")
 
         if response == "No Driver found":
-            self.status = "No driver found"
+            self.set_status("No driver found")
         elif response == "Error":
-            self.status = "Error while refreshing drivers"
+            self.set_status("Error while refreshing drivers")
         else:
             response = json.loads(response)
             response = self.sort_drivers(response)
 
-            self.saved_drivers = response
-            self.drivers = self.saved_drivers
-            self.status = "Refreshed drivers"
+            self.set_drivers(response)
+            self.set_status("Refreshed drivers")
         print(self.drivers)
 
     @Slot(str)
@@ -85,14 +80,13 @@ class DriverDataPublisher(QObject):
         Args:
         name (str): The name of the driver to search for.
         """
-
-        result = [driver for driver in self.drivers if driver["name"] == name]
+        result = [driver for driver in self.__drivers if driver["name"] == name]
         if result:
-            self.drivers = result
-            self.status = "Found driver " + name
+            self.set_drivers(result)
+            self.set_status("Found driver " + name)
         else:
-            self.status = "No driver found"
-
+            self.set_status("No driver found")
+        
     @Slot(str)
     def create_driver(self, name: str):
         """
@@ -101,49 +95,38 @@ class DriverDataPublisher(QObject):
         Args:
         name (str): The name of the driver to create.
         """
-
-        data = f"post_driver: {name}"
+        data = f'post_driver: {name}'
         try:
             self.req_socket.send(data.encode("utf-8"))
             response = self.req_socket.recv().decode("utf-8")
             if response:
                 try:
-                    self.drivers.append(json.loads(response))
-                    self.drivers = self.sort_drivers(self.drivers)
-                    self.status = "Created driver: " + name
+                    self.__drivers.append(json.loads(response))
+                    self.__drivers = self.sort_drivers(self.__drivers)
+                    self.driversChanged.emit()
+                    self.set_status("Created driver: " + name)
                 except Exception as e:
                     print(e)
-                    self.status = "Driver creation failed"
+                    self.set_status("Driver creation failed")
             else:
-                self.status = "Driver creation failed"
+                self.set_status("Driver creation failed")
         except:
-            self.status = "Driver creation failed"
+            self.set_status("Driver creation failed")
 
-    @Property(list, notify=driversChanged)
+    @Property(list, notify=driversChanged) # type: ignore
     def drivers(self):
         return self.__drivers
-
-    @Property(str, notify=statusChanged)
+    
+    @Property(str, notify=statusChanged) # type: ignore
     def status(self):
         return self.__status
 
-    @Property(list)
-    def saved_drivers(self):
-        return self.__saved_drivers
-
-    @drivers.setter
-    def drivers(self, value):
-        if self.__drivers != value:
-            self.__drivers = value
+    def set_drivers(self, drivers):
+        if self.__drivers != drivers:
+            self.__drivers = drivers
             self.driversChanged.emit()
 
-    @status.setter
-    def status(self, value):
-        if self.__status != value:
-            self.__status = value
+    def set_status(self, status):
+        if self.__status != status:
+            self.__status = status
             self.statusChanged.emit()
-
-    @saved_drivers.setter
-    def saved_drivers(self, value):
-        if self.__saved_drivers != value:
-            self.__saved_drivers = value

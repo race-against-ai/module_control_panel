@@ -3,6 +3,36 @@ from PySide6.QtCore import QObject, Signal, Property
 
 
 class ControlPanelModel(QObject):
+    # --------------- signals ---------------
+    # ---------- standard ----------
+    throttle_changed = Signal()
+    brake_changed = Signal()
+    clutch_changed = Signal()
+    steering_changed = Signal()
+
+    # ---------- actual values ----------
+    actual_throttle_changed = Signal()
+    actual_brake_changed = Signal()
+    actual_clutch_changed = Signal()
+    actual_steering_changed = Signal()
+    steering_offset_changed = Signal()
+
+    # ---------- max values -----------
+    max_throttle_changed = Signal()
+    max_brake_changed = Signal()
+    max_clutch_changed = Signal()
+    max_steering_changed = Signal()
+    all_speed_max_changed = Signal()
+
+    # ---------- button status ----------
+    button_status_changed = Signal()
+    platform_status_changed = Signal()
+    pedal_status_changed = Signal()
+    head_tracking_status_changed = Signal()
+
+    # ---------- head tracking -----------
+    head_tracking_yaw_angle_changed = Signal()
+
     def __init__(self) -> None:
         QObject.__init__(self)
         # standard, used for sending
@@ -240,7 +270,7 @@ class ControlPanelModel(QObject):
         self.all_speed_max_changed.emit()
 
     # ---------- button status ----------
-    def set_button_status(self, value: float) -> None:
+    def set_button_status(self, value: bool) -> None:
         self._buttons_activated = value
         self.button_status_changed.emit()
 
@@ -260,119 +290,35 @@ class ControlPanelModel(QObject):
         self._head_tracking_yaw_angle = value
         self.head_tracking_yaw_angle_changed.emit()
 
-    # -------------------- signals --------------------
-    # ---------- standard ----------
-    @Signal
-    def throttle_changed(self) -> None:
-        pass
-
-    @Signal
-    def brake_changed(self) -> None:
-        pass
-
-    @Signal
-    def clutch_changed(self) -> None:
-        pass
-
-    @Signal
-    def steering_changed(self) -> None:
-        pass
-
-    # ---------- actual values ----------
-    @Signal
-    def actual_throttle_changed(self) -> None:
-        pass
-
-    @Signal
-    def actual_brake_changed(self) -> None:
-        pass
-
-    @Signal
-    def actual_clutch_changed(self) -> None:
-        pass
-
-    @Signal
-    def actual_steering_changed(self) -> None:
-        pass
-
-    @Signal
-    def steering_offset_changed(self) -> None:
-        pass
-
-    # ---------- max values ----------
-    @Signal
-    def max_throttle_changed(self) -> None:
-        pass
-
-    @Signal
-    def max_brake_changed(self) -> None:
-        pass
-
-    @Signal
-    def max_clutch_changed(self) -> None:
-        pass
-
-    @Signal
-    def max_steering_changed(self) -> None:
-        pass
-
-    @Signal
-    def all_speed_max_changed(self) -> None:
-        pass
-
-    # ---------- button status ----------
-    @Signal
-    def button_status_changed(self) -> None:
-        pass
-
-    @Signal
-    def platform_status_changed(self) -> None:
-        pass
-
-    @Signal
-    def pedal_status_changed(self) -> None:
-        pass
-
-    @Signal
-    def head_tracking_status_changed(self) -> None:
-        pass
-
-    # ---------- head tracking ----------
-    @Signal
-    def head_tracking_yaw_angle_changed(self) -> None:
-        pass
-
     # -------------------- properties --------------------
     # ---------- standard ----------
-    throttle = Property(float, get_throttle, set_throttle, notify=throttle_changed)
-    brake = Property(float, get_brake, set_brake, notify=brake_changed)
-    clutch = Property(float, get_clutch, set_clutch, notify=clutch_changed)
-    steering = Property(float, get_steering, set_steering, notify=steering_changed)
+    throttle = Property(float, get_throttle, set_throttle, notify=throttle_changed)  # type: ignore
+    brake = Property(float, get_brake, set_brake, notify=brake_changed)  # type: ignore
+    clutch = Property(float, get_clutch, set_clutch, notify=clutch_changed)  # type: ignore
+    steering = Property(float, get_steering, set_steering, notify=steering_changed)  # type: ignore
 
-    steering_offset = Property(float, get_steering_offset, set_steering_offset, notify=steering_offset_changed)
+    steering_offset = Property(float, get_steering_offset, set_steering_offset, notify=steering_offset_changed)  # type: ignore
 
     # ---------- actual values ----------
-    actual_throttle = Property(float, get_actual_throttle, set_actual_throttle, notify=actual_throttle_changed)
-    actual_brake = Property(float, get_actual_brake, set_actual_brake, notify=actual_brake_changed)
-    actual_clutch = Property(float, get_actual_clutch, set_actual_clutch, notify=actual_clutch_changed)
-    actual_steering = Property(float, get_actual_steering, set_actual_steering, notify=actual_steering_changed)
+    actual_throttle = Property(float, get_actual_throttle, set_actual_throttle, notify=actual_throttle_changed)  # type: ignore
+    actual_brake = Property(float, get_actual_brake, set_actual_brake, notify=actual_brake_changed)  # type: ignore
+    actual_clutch = Property(float, get_actual_clutch, set_actual_clutch, notify=actual_clutch_changed)  # type: ignore
+    actual_steering = Property(float, get_actual_steering, set_actual_steering, notify=actual_steering_changed)  # type: ignore
 
     # ---------- max values ----------
-    max_throttle = Property(float, get_max_throttle, set_max_throttle, notify=max_throttle_changed)
-    max_brake = Property(float, get_max_brake, set_max_brake, notify=max_brake_changed)
-    max_clutch = Property(float, get_max_clutch, set_max_clutch, notify=max_clutch_changed)
-    max_steering = Property(float, get_max_steering, set_max_steering, notify=max_steering_changed)
-    all_speed_max = Property(float, get_all_speed_max, set_all_speed_max, notify=all_speed_max_changed)
+    max_throttle = Property(float, get_max_throttle, set_max_throttle, notify=max_throttle_changed)  # type: ignore
+    max_brake = Property(float, get_max_brake, set_max_brake, notify=max_brake_changed)  # type: ignore
+    max_clutch = Property(float, get_max_clutch, set_max_clutch, notify=max_clutch_changed)  # type: ignore
+    max_steering = Property(float, get_max_steering, set_max_steering, notify=max_steering_changed)  # type: ignore
+    all_speed_max = Property(float, get_all_speed_max, set_all_speed_max, notify=all_speed_max_changed)  # type: ignore
 
     # ---------- button status ----------
-    button_status = Property(bool, get_button_status, set_button_status, notify=button_status_changed)
-    platform_status = Property(bool, get_platform_status, set_platform_status, notify=platform_status_changed)
-    pedal_status = Property(bool, get_pedal_status, set_pedal_status, notify=pedal_status_changed)
+    button_status = Property(bool, get_button_status, set_button_status, notify=button_status_changed)  # type: ignore
+    platform_status = Property(bool, get_platform_status, set_platform_status, notify=platform_status_changed)  # type: ignore
+    pedal_status = Property(bool, get_pedal_status, set_pedal_status, notify=pedal_status_changed)  # type: ignore
     head_tracking_status = Property(
-        bool, get_head_tracking_status, set_head_tracking_status, notify=head_tracking_status_changed
-    )
+        bool, get_head_tracking_status, set_head_tracking_status, notify=head_tracking_status_changed)  # type: ignore
 
     # ---------- head tracking ----------
     head_tracking_yaw_angle = Property(
-        float, get_head_tracking_yaw_angle, set_head_tracking_yaw_angle, notify=head_tracking_yaw_angle_changed
-    )
+        float, get_head_tracking_yaw_angle, set_head_tracking_yaw_angle, notify=head_tracking_yaw_angle_changed)  # type: ignore
