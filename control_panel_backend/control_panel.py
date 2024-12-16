@@ -78,6 +78,25 @@ def create_config(config_file_path: str) -> dict:
     print("No Config File found, creating new one from Template")
     print("---!Using default argments for a Config file")
     template = {
+        "pynng": {
+            "publishers": {
+                "__pynng_data_publisher": {
+                    "address": "ipc:///tmp/RAAI/control_panel.ipc",
+                    "topics": {
+                        "platform": "platform",
+                        "config": "config"
+                    }
+                }
+            },
+            "subscribers": {
+                "__driver_input_receiver": {
+                    "address": "ipc:///tmp/RAAI/driver_input_reader.ipc",
+                    "topics": {
+                        "driver_input": "driver_input"
+                    }
+                }
+            }
+        },
         "max_throttle": 15,
         "max_brake": 50,
         "max_clutch": 50,
@@ -186,12 +205,16 @@ class ControlPanel:
         self.max_steering = self.control_panel_model.get_max_steering()
         self.steering_offset = self.control_panel_model.get_steering_offset()
 
-        self.__pynng_data_publisher = pynng.Pub0()
-        self.__pynng_data_publisher.listen(CONTROL_PANEL_PYNNG_ADDRESS)
 
+        sending_address = self.config["pynng"]["publishers"]["__pynng_data_publisher"]["address"]
+        self.__pynng_data_publisher = pynng.Pub0()
+        self.__pynng_data_publisher.listen(sending_address)
+
+        receiving_address = self.config["pynng"]["subscribers"]["__driver_input_receiver"]["address"]
+        receiving_topic = self.config["pynng"]["subscribers"]["__driver_input_receiver"]["topics"]["driver_input"]
         self.__driver_input_receiver = pynng.Sub0()
-        self.__driver_input_receiver.subscribe("driver_input")
-        self.__driver_input_receiver.dial(PLATFORM_CONTROLLER_PYNNG_ADDRESS, block=False)
+        self.__driver_input_receiver.subscribe(receiving_topic)
+        self.__driver_input_receiver.dial(receiving_address, block=False)
         self._notifier = QSocketNotifier(self.__driver_input_receiver.recv_fd, QSocketNotifier.Read)
         self._notifier.activated.connect(self.handle_driver_input)  # type: ignore
 
@@ -228,7 +251,8 @@ class ControlPanel:
                 "steering_offset": self.steering_offset,
             }
 
-        send_data(self.__pynng_data_publisher, throttle_payload, "config", p_print=False)
+        config_topic = self.config["pynng"]["publishers"]["__pynng_data_publisher"]["topics"]["config"]
+        send_data(self.__pynng_data_publisher, throttle_payload, config_topic, p_print=False)
 
     def handle_driver_input(self) -> None:
         driver_payload = receive_data(self.__driver_input_receiver)
@@ -315,4 +339,5 @@ class ControlPanel:
 
     def send_platform_signal(self) -> None:
         payload = {"platform_status": self.control_panel_model.get_platform_status()}
-        send_data(self.__pynng_data_publisher, payload, "platform")
+        platform_topic = self.config["pynng"]["publishers"]["__pynng_data_publisher"]["topics"]["platform"]
+        send_data(self.__pynng_data_publisher, payload, platform_topic)
