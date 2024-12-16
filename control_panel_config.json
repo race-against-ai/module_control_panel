@@ -26,5 +26,23 @@
     "platform_status": true,
     "pedal_status": true,
     "head_tracking_status": false,
-    "steering_offset": -8.0
+    "steering_offset": -8.0,
+
+    "pynng": {
+        "publishers": {
+            "name_publisher": {
+                "address": "ipc:///tmp/RAAI/current_driver.ipc",
+                "topics": {}
+            }
+        },
+        "requesters": {
+          "database_request": {
+            "address": "ipc:///tmp/RAAI/rest_api.ipc",
+            "topics": {}
+          },
+          "connection_overlay": {
+            "address": "ipc:///tmp/RAAI/connection_overlay.ipc"
+          }
+        }
+    }
 }

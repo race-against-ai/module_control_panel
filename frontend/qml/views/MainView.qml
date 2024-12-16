@@ -3,80 +3,76 @@ import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
-import "./items"
+import "./../items"
 
-Window {
-    id: window
+Item {
+    signal navigateNext()
 
-    color: "black"
-    width: 1280
-    height: 720
-
-    minimumHeight: 480
-    minimumWidth: 852
-
-    visible: true
-    title: qsTr("race against ai - control panel")
-
-    visibility: "Windowed"
-
-    signal sliderMaxThrottleChanged(real value)
-    signal sliderMaxBrakeChanged(real value)
-    signal sliderMaxClutchChanged(real value)
-    signal sliderMaxSteeringChanged(real value)
-    signal sliderAllMaxSpeedChanged(real value)
-
-    signal sliderSteeringOffsetChanged(real value)
-
-    signal buttonButtonStatusChanged()
-    signal buttonResetHeadTracking()
-    signal buttonPedalStatusChanged()
-    signal buttonPlatformStatusChanged()
-    signal buttonHeadTrackingChanged()
-
-    signal timerStart()
-    signal timerPause()
-    signal timerStop()
-    signal timerReset()
-    signal timerResetFull()
-    signal timerIgnore()
-
-    // reading window.visibility doesn't return the state (as in "Windowed")
-    // this property is needed
-    property bool isFullScreen: false
+    anchors.fill: parent
 
 
-
-    Image {
+    Rectangle {
         id: background
-        //source: "../../assets/ui.svg"
-        source: "pictures/ui_Background.svg"
         anchors.fill: parent
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop {
+                position: 0.0
+                color: background_color_start_light
+            }
+            GradientStop {
+                position: 1.0
+                color: background_color_stop_light
+            }
+        }
+        Component.onCompleted: {
+            console.log("Background created");
+        }
     }
 
     Image {
         id: vw_logo
-        source: "pictures/ui_Background_VW_logo.svg"
+        source: "./../pictures/ui_Background_VW_logo.svg"
         anchors.centerIn: parent
         fillMode: Image.PreserveAspectFit
         height: parent.height
         width: parent.width
+        scale: 0.9
+    }
+    
+    Item {
+        id: wheels
+
+        Wheels {
+            x: car_image.x
+            y: car_image.y * 1.1
+            steering_value: -control_panel_model.steering
+        }
+
+        Wheels {
+            x: car_image.x + car_image.width - car_image.width * 0.15
+            y: car_image.y *1.1
+            steering_value: -control_panel_model.steering
+        }
+
     }
 
-    Image {
+    IconImage {
         id: car_image
-        source: "pictures/ui_car.svg"
-        anchors.centerIn: parent
-        fillMode: Image.PreserveAspectFit
-        height: parent.height
-        width: parent.width
+        source: "./../pictures/ui_car_car.svg"
+        height: parent.height / 2
+        width: height / 2
+        x: parent.width / 2 - width / 2
+        y: parent.height * 0.4
+        color: dark_blue_text_color
 
 
     }
+
 
     Image {
         id: ngitl_logo
-        source: "pictures/ui_Background_NGITL_logo_logo.svg"
+        source: "./../pictures/ui_Background_NGITL_logo_logo.svg"
         anchors.fill: parent
     }
 
@@ -85,7 +81,7 @@ Window {
         text: "Race Against AI"
         y: 10
         x: parent.width / 2 - width / 2
-        color: "#274c87"
+        color: caption_text_color
         font.pointSize: parent.height / 15
         font.bold: true
     }
@@ -99,8 +95,8 @@ Window {
         width: parent.width * 0.04
         height: parent.height * 0.7
 
-        value: control_panel_model.brake
-        actualValue: control_panel_model.actual_brake
+        value: control_panel_model.brake / 2 < 0 ? 0 : control_panel_model.brake
+        actualValue: control_panel_model.actual_brake / 2 < 0 ? 0 : control_panel_model.actual_brake
         maxValue: control_panel_model.max_brake
 
         onSliderMaxChanged: function(val) {
@@ -162,6 +158,28 @@ Window {
 
         onSliderSteeringOffsetChanged: function(val) {
             window.sliderSteeringOffsetChanged(val)
+        }
+    }
+
+    Rectangle {
+        id: timerBackground
+        x: window.width / 2 - width / 2
+        y: window.height * 0.9
+        radius: 10
+        color: window.light_grey
+        width: timer.width * 1.2
+        height: timer.height * 1.05
+        border.color: "white"
+        border.width: 5
+
+        Text {
+            id: timer
+            text: String(t_model.minutes).padStart(2, '0') + ":" + String(t_model.seconds).padStart(2, '0') + "." + String(t_model.millis).padStart(3, '0')
+            anchors.verticalCenter: timerBackground.verticalCenter
+            anchors.horizontalCenter: timerBackground.horizontalCenter
+            color: window.dark_blue_text_color
+            font.pointSize: window.height / 30
+            font.bold: true
         }
     }
 

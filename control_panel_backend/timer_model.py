@@ -49,6 +49,6 @@ class Timer(QObject):
         self._minutes = minutes
         self.minutes_changed.emit()
 
-    millis = Property(int, get_millis, set_millis, notify=millis_changed)
-    seconds = Property(int, get_seconds, set_seconds, notify=seconds_changed)
-    minutes = Property(int, get_minutes, set_minutes, notify=minutes_changed)
+    millis = Property(int, get_millis, set_millis, notify=millis_changed)  # type: ignore
+    seconds = Property(int, get_seconds, set_seconds, notify=seconds_changed)  # type: ignore
+    minutes = Property(int, get_minutes, set_minutes, notify=minutes_changed)  # type: ignore
