@@ -20,6 +20,7 @@ from enum import IntEnum
 CONTROL_PANEL_PYNNG_ADDRESS = "ipc:///tmp/RAAI/control_panel.ipc"
 CONTROL_COMPONENT_PYNNG_ADDRESS = "ipc:///tmp/RAAI/vehicle_output_writer.ipc"
 PLATFORM_CONTROLLER_PYNNG_ADDRESS = "ipc:///tmp/RAAI/driver_input_reader.ipc"
+SESSION_STATUS_RECEIVER_ADDRESS = "ipc:///tmp/RAAI/session_status.ipc"
 
 
 def send_data(pub: pynng.Pub0, payload: dict, topic: str = " ", p_print: bool = True) -> None:
@@ -149,6 +150,7 @@ class ControlPanel:
 
         self.control_panel_model = ControlPanelModel()
         self.engine.rootContext().setContextProperty("control_panel_model", self.control_panel_model)
+        self.engine.rootContext().setContextProperty("t_model", self.t_model)
         # and load the QML panel
         self.engine.load(resource_path() / "frontend/qml/main.qml")
 
@@ -223,6 +225,18 @@ class ControlPanel:
         self.diff = current_timestamp_ns - self.start_timestamp_ns
         self.t_model.set_timestamp(self.diff)
 
+        self.__session_receiver = pynng.Sub0()
+        self.__session_receiver.subscribe("")
+        self.__session_receiver.dial(SESSION_STATUS_RECEIVER_ADDRESS, block=False)
+
+        self.session_receiver_socket_notifier = QSocketNotifier(self.__session_receiver.recv_fd, QSocketNotifier.Read)
+        self.session_receiver_socket_notifier.activated.connect(self.handle_session_status)
+
+    def timer_callback(self) -> None:
+        current_timestamp_ns = time.time_ns()
+        self.diff = current_timestamp_ns - self.start_timestamp_ns
+        self.t_model.set_timestamp(self.diff)
+
     def handle_head_tracker_reset_request(self) -> None:
         pass
 
@@ -278,6 +292,18 @@ class ControlPanel:
         steering_scaled = steering * (self.max_steering / 100)
 
         self.control_panel_model.set_all(throttle_scaled, brake_scaled, clutch_scaled, steering_scaled)
+
+    def handle_session_status(self):
+        session_payload = receive_data(self.__session_receiver)
+        print(session_payload)
+        if session_payload["Session_status"] == "Start":
+            self.control_panel_model.set_pedal_status(True)
+            self.timer_reset()
+            self.timer_start()
+        else:
+            self.control_panel_model.set_pedal_status(False)
+            self.timer_stop()
+        print(self.control_panel_model.pedal_status)
 
     def start(self):
         self.app.exec()

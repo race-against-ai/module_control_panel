@@ -49,7 +49,7 @@ Item {
                 y: parent.height * 1 / 5
                 x: container.width / 2 - width / 2
                 text: "Pedals"
-                checked: true
+                checked: control_panel_model.pedal_status
 
                 onClicked: function() {
                     buttonPedalStatusChanged()
