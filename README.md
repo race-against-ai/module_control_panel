@@ -1,11 +1,19 @@
-# RAAI Module Control Panel
+# Control Panel Module
 
-The Overlay component of the overall Control Component. It Visualizes the Driver Inputs and also gives Throttle Data
-over to the Vehicle Output Writer
+The Control Panel overlay is the main control unit for the steerable vehicle. It visualizes the vehicle's most important settings and provides insights into steering and speed behavior. Additionally, the overlay includes a timer that can be started for time measurement purposes.
+
+## Usage
+
+The Control Panel is launched via the Module Manager and can be found under the name "Control Panel".
 
 ## Structure
-The visualized Driver Data is **received** from the driver_input_reader module over the pynng address <br>
-``ipc:///tmp/RAAI/driver_input_reader.ipc``
 
-The Throttle Data controlled by the Control Panel then gets **sent** over the address <br>
-``ipc:///tmp/RAAI/control_panel.ipc``
+The visualized driver data is **received** from the `driver_input_reader` module via the `pynng` address:  
+```
+ipc:///tmp/RAAI/driver_input_reader.ipc
+```
+
+The throttle data controlled by the Control Panel is then **sent** via the address:  
+```
+ipc:///tmp/RAAI/control_panel.ipc
+``` 
